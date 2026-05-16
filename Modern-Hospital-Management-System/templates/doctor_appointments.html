@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointments - Doctor Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2><i class="fas fa-calendar-check"></i> My Appointments</h2>
+            <p class="text-muted">Manage your patient appointments</p>
+            <hr>
+        </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('doctor.appointments', status='all') }}" 
+                   class="btn btn-outline-primary {% if status_filter == 'all' %}active{% endif %}">
+                    <i class="fas fa-list"></i> All ({{ appointments|length }})
+                </a>
+                <a href="{{ url_for('doctor.appointments', status='pending') }}" 
+                   class="btn btn-outline-warning {% if status_filter == 'pending' %}active{% endif %}">
+                    <i class="fas fa-clock"></i> Pending
+                </a>
+                <a href="{{ url_for('doctor.appointments', status='approved') }}" 
+                   class="btn btn-outline-success {% if status_filter == 'approved' %}active{% endif %}">
+                    <i class="fas fa-check"></i> Approved
+                </a>
+                <a href="{{ url_for('doctor.appointments', status='completed') }}" 
+                   class="btn btn-outline-info {% if status_filter == 'completed' %}active{% endif %}">
+                    <i class="fas fa-check-circle"></i> Completed
+                </a>
+                <a href="{{ url_for('doctor.appointments', status='rejected') }}" 
+                   class="btn btn-outline-danger {% if status_filter == 'rejected' %}active{% endif %}">
+                    <i class="fas fa-times"></i> Rejected
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments List -->
+    {% if appointments %}
+        <div class="row">
+            {% for appointment in appointments %}
+            <div class="col-md-12 mb-3">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <!-- Patient Info -->
+                            <div class="col-md-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-user fa-3x text-info"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">{{ appointment.patient.user.name }}</h6>
+                                        <small class="text-muted">Patient ID: #{{ appointment.patient.id }}</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Date & Time -->
+                            <div class="col-md-3">
+                                <p class="mb-1">
+                                    <i class="fas fa-calendar text-primary"></i>
+                                    <strong>Date:</strong> {{ appointment.date.strftime('%b %d, %Y') }}
+                                </p>
+                                <p class="mb-0">
+                                    <i class="fas fa-clock text-primary"></i>
+                                    <strong>Time:</strong> {{ appointment.time.strftime('%I:%M %p') }}
+                                </p>
+                            </div>
+
+                            <!-- Reason -->
+                            <div class="col-md-3">
+                                <p class="mb-0">
+                                    <strong>Reason:</strong><br>
+                                    <small>{{ appointment.reason[:50] }}{% if appointment.reason|length > 50 %}...{% endif %}</small>
+                                </p>
+                            </div>
+
+                            <!-- Status & Actions -->
+                            <div class="col-md-3 text-end">
+                                <!-- Status Badge -->
+                                {% if appointment.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark mb-2">
+                                        <i class="fas fa-clock"></i> Pending
+                                    </span>
+                                {% elif appointment.status == 'approved' %}
+                                    <span class="badge bg-success mb-2">
+                                        <i class="fas fa-check"></i> Approved
+                                    </span>
+                                {% elif appointment.status == 'completed' %}
+                                    <span class="badge bg-info mb-2">
+                                        <i class="fas fa-check-circle"></i> Completed
+                                    </span>
+                                {% elif appointment.status == 'rejected' %}
+                                    <span class="badge bg-danger mb-2">
+                                        <i class="fas fa-times"></i> Rejected
+                                    </span>
+                                {% elif appointment.status == 'cancelled' %}
+                                    <span class="badge bg-secondary mb-2">
+                                        <i class="fas fa-ban"></i> Cancelled
+                                    </span>
+                                {% endif %}
+                                
+                                <br>
+                                
+                                <!-- Action Buttons -->
+                                <div class="btn-group-vertical btn-group-sm mt-2" role="group">
+                                    {% if appointment.status == 'pending' %}
+                                        <form method="POST" 
+                                              action="{{ url_for('doctor.update_appointment', id=appointment.id) }}"
+                                              style="display: inline;">
+                                            <input type="hidden" name="action" value="approve">
+                                            <button type="submit" class="btn btn-success btn-sm w-100 mb-1">
+                                                <i class="fas fa-check"></i> Approve
+                                            </button>
+                                        </form>
+                                        <form method="POST" 
+                                              action="{{ url_for('doctor.update_appointment', id=appointment.id) }}"
+                                              style="display: inline;">
+                                            <input type="hidden" name="action" value="reject">
+                                            <button type="submit" class="btn btn-danger btn-sm w-100"
+                                                    onclick="return confirm('Reject this appointment?');">
+                                                <i class="fas fa-times"></i> Reject
+                                            </button>
+                                        </form>
+                                        {% elif appointment.status == 'approved' %}
+                                        <form method="POST" 
+                                              action="{{ url_for('doctor.update_appointment', id=appointment.id) }}"
+                                              style="display: inline;">
+                                            <input type="hidden" name="action" value="complete">
+                                            <button type="submit" class="btn btn-info btn-sm w-100 mb-1">
+                                                <i class="fas fa-check-circle"></i> Mark Complete
+                                            </button>
+                                        </form>
+                                    
+                                        <!-- ✅ Added Video Call button here -->
+                                        <a href="{{ url_for('video.start_call', appointment_id=appointment.id) }}" 
+                                           class="btn btn-success btn-sm w-100 mb-1">
+                                            <i class="fas fa-video"></i> Video Call
+                                        </a>
+                                    
+                                        <a href="{{ url_for('doctor.add_prescription', appointment_id=appointment.id) }}" 
+                                           class="btn btn-primary btn-sm w-100">
+                                            <i class="fas fa-prescription"></i> Add Prescription
+                                        </a>
+                                    
+                                    {% elif appointment.status == 'completed' %}
+                                        {% if appointment.prescription %}
+                                            <a href="{{ url_for('doctor.view_prescription', id=appointment.prescription.id) }}" 
+                                               class="btn btn-outline-info btn-sm w-100">
+                                                <i class="fas fa-eye"></i> View Prescription
+                                            </a>
+                                        {% else %}
+                                            <a href="{{ url_for('doctor.add_prescription', appointment_id=appointment.id) }}" 
+                                               class="btn btn-primary btn-sm w-100">
+                                                <i class="fas fa-prescription"></i> Add Prescription
+                                            </a>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Full Reason (Expandable) -->
+                        {% if appointment.reason|length > 50 %}
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <details>
+                                    <summary class="text-primary" style="cursor: pointer;">
+                                        <small>Show full reason</small>
+                                    </summary>
+                                    <div class="alert alert-light mt-2 mb-0">
+                                        {{ appointment.reason }}
+                                    </div>
+                                </details>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Notes Section -->
+                        {% if appointment.notes %}
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <div class="alert alert-info mb-0">
+                                    <strong><i class="fas fa-sticky-note"></i> Notes:</strong> {{ appointment.notes }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="card-footer text-muted small">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <i class="fas fa-clock"></i> 
+                                Booked: {{ appointment.created_at.strftime('%b %d, %Y %I:%M %p') }}
+                            </div>
+                            <div class="col-md-6 text-end">
+                                {% if appointment.patient.phone %}
+                                <i class="fas fa-phone"></i> {{ appointment.patient.phone }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Summary -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="alert alert-light">
+                    <i class="fas fa-info-circle"></i>
+                    Showing <strong>{{ appointments|length }}</strong> appointment(s)
+                    {% if status_filter != 'all' %}
+                        with status: <strong>{{ status_filter }}</strong>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <!-- No Appointments -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-calendar-times fa-5x text-muted mb-3"></i>
+                        <h4>No Appointments Found</h4>
+                        <p class="text-muted">
+                            {% if status_filter != 'all' %}
+                                You don't have any {{ status_filter }} appointments.
+                            {% else %}
+                                You don't have any appointments scheduled yet.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Back Button -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 10px;
+        transition: transform 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
+    
+    .btn-group .btn.active {
+        font-weight: bold;
+    }
+    
+    .fa-5x {
+        font-size: 5rem;
+    }
+    
+    details summary {
+        user-select: none;
+    }
+    
+    details summary::-webkit-details-marker {
+        display: none;
+    }
+</style>
+{% endblock %}

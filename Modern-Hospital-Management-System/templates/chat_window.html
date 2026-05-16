@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat with {{ other_user.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Back button -->
+            <a href="{{ url_for('chat.index') }}" class="btn btn-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Back to Contacts
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-lg">
+                <!-- Chat Header -->
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            {% if other_user.role == 'doctor' %}
+                            <i class="fas fa-user-md fa-2x"></i>
+                            {% elif other_user.role == 'patient' %}
+                            <i class="fas fa-user fa-2x"></i>
+                            {% else %}
+                            <i class="fas fa-user-shield fa-2x"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h5 class="mb-0">{{ other_user.name }}</h5>
+                            <small>{{ other_user.role.title() }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Body -->
+                <div class="card-body" id="chatBody" style="height: 500px; overflow-y: auto; background: #f8f9fa;">
+                    <div id="messagesContainer">
+                        {% if messages %}
+                            {% for message in messages %}
+                            <div class="message-bubble mb-3 {% if message.sender_id == current_user.id %}sent{% else %}received{% endif %}">
+                                <div class="{% if message.sender_id == current_user.id %}text-end{% endif %}">
+                                    <div class="d-inline-block p-3 rounded {% if message.sender_id == current_user.id %}bg-primary text-white{% else %}bg-white border{% endif %}" 
+                                         style="max-width: 70%;">
+                                        <div>{{ message.content }}</div>
+                                        <div class="small mt-1 {% if message.sender_id == current_user.id %}text-white-50{% else %}text-muted{% endif %}">
+                                            {{ message.timestamp.strftime('%I:%M %p') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-5">
+                                <i class="fas fa-comments fa-3x mb-3"></i>
+                                <p>No messages yet. Start the conversation!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Chat Footer -->
+                <div class="card-footer bg-white">
+                    <div class="input-group">
+                        <input type="text" id="messageInput" class="form-control" placeholder="Type your message..." autocomplete="off">
+                        <button id="sendMessageBtn" class="btn btn-primary px-4">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Socket.IO -->
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+<script>
+    var currentUserId = {{ current_user.id }};
+    var otherUserId = {{ other_user.id }};
+    var otherUserName = "{{ other_user.name }}";
+    var socket = io();
+    
+    // Join user's room
+    socket.emit('join', { room: 'user_' + currentUserId });
+    
+    // Scroll to bottom on load
+    var chatBody = document.getElementById('chatBody');
+    chatBody.scrollTop = chatBody.scrollHeight;
+    
+    // Display message function
+    function displayMessage(content, senderId, timestamp) {
+        var container = document.getElementById('messagesContainer');
+        var isSent = senderId === currentUserId;
+        
+        var messageDiv = document.createElement('div');
+        messageDiv.className = 'message-bubble mb-3 ' + (isSent ? 'sent' : 'received');
+        
+        messageDiv.innerHTML = 
+            '<div class="' + (isSent ? 'text-end' : '') + '">' +
+                '<div class="d-inline-block p-3 rounded ' + 
+                (isSent ? 'bg-primary text-white' : 'bg-white border') + '" style="max-width: 70%;">' +
+                    '<div>' + escapeHtml(content) + '</div>' +
+                    '<div class="small mt-1 ' + (isSent ? 'text-white-50' : 'text-muted') + '">' + 
+                        timestamp + 
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        
+        container.appendChild(messageDiv);
+        
+        // Remove "no messages" text if exists
+        var noMessages = container.querySelector('.text-center.text-muted.py-5');
+        if (noMessages) {
+            noMessages.remove();
+        }
+        
+        // Scroll to bottom
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+    
+    // Escape HTML
+    function escapeHtml(text) {
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+    
+    // Send message
+    function sendMessage() {
+        var input = document.getElementById('messageInput');
+        var content = input.value.trim();
+        
+        if (content) {
+            fetch('/chat/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    receiver_id: otherUserId,
+                    content: content
+                })
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    return response.json().then(function(err) {
+                        throw new Error(err.error || 'Failed to send message');
+                    });
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.success) {
+                    displayMessage(content, currentUserId, data.timestamp);
+                    input.value = '';
+                    
+                    // Emit socket event
+                    socket.emit('send_message', {
+                        room: 'user_' + otherUserId,
+                        receiver_id: otherUserId,
+                        message: content,
+                        sender: '{{ current_user.name }}',
+                        sender_id: currentUserId,
+                        timestamp: data.timestamp
+                    });
+                }
+            })
+            .catch(function(error) {
+                alert(error.message);
+            });
+        }
+    }
+    
+    // Send button click
+    document.getElementById('sendMessageBtn').addEventListener('click', sendMessage);
+    
+    // Enter key to send
+    document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+    
+    // Receive messages via socket
+    socket.on('receive_message', function(data) {
+        if (data.sender_id == otherUserId) {
+            displayMessage(data.message, data.sender_id, data.timestamp);
+        }
+    });
+    
+    // Focus on input
+    document.getElementById('messageInput').focus();
+</script>
+
+<style>
+    #chatBody {
+        background-image: 
+            linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+            linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+            linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
+        background-size: 20px 20px;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+    
+    .message-bubble {
+        animation: fadeIn 0.3s;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message-bubble.sent .d-inline-block {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .message-bubble.received .d-inline-block {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    #messageInput {
+        border-radius: 20px;
+    }
+    
+    #sendMessageBtn {
+        border-radius: 20px;
+    }
+</style>
+{% endblock %}

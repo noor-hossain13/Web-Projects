@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4"><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h2>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Total Doctors</h6>
+                        <h2 class="mb-0">{{ stats.total_doctors }}</h2>
+                    </div>
+                    <i class="fas fa-user-md fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Total Patients</h6>
+                        <h2 class="mb-0">{{ stats.total_patients }}</h2>
+                    </div>
+                    <i class="fas fa-users fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Appointments</h6>
+                        <h2 class="mb-0">{{ stats.total_appointments }}</h2>
+                    </div>
+                    <i class="fas fa-calendar-check fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-uppercase mb-1">Pending Approvals</h6>
+                        <h2 class="mb-0">{{ stats.pending_doctors }}</h2>
+                    </div>
+                    <i class="fas fa-hourglass-half fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Charts -->
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Statistics Overview</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="statsChart" height="100"></canvas>
+            </div>
+        </div>
+        
+        <!-- Recent Appointments -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-calendar"></i> Recent Appointments</h5>
+                <a href="{{ url_for('admin.appointments') }}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for apt in recent_appointments %}
+                            <tr>
+                                <td>{{ apt.patient.user.name }}</td>
+                                <td>Dr. {{ apt.doctor.user.name }}</td>
+                                <td>{{ apt.date }}</td>
+                                <td>{{ apt.time }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'warning' if apt.status == 'pending' else 'success' if apt.status == 'approved' else 'danger' if apt.status == 'rejected' else 'secondary' }}">
+                                        {{ apt.status.title() }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pending Approvals -->
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-user-clock"></i> Pending Doctor Approvals</h5>
+            </div>
+            <div class="card-body">
+                {% if pending_approvals %}
+                    {% for doctor in pending_approvals %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 border rounded">
+                        <div>
+                            <h6 class="mb-1">{{ doctor.user.name }}</h6>
+                            <small class="text-muted">{{ doctor.specialization }}</small>
+                        </div>
+                        <form method="POST" action="{{ url_for('admin.approve_doctor', doctor_id=doctor.id) }}">
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center">No pending approvals</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-link"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('admin.doctors') }}" class="btn btn-outline-primary w-100 mb-2">
+                    <i class="fas fa-user-md"></i> Manage Doctors
+                </a>
+                <a href="{{ url_for('admin.patients') }}" class="btn btn-outline-success w-100 mb-2">
+                    <i class="fas fa-users"></i> Manage Patients
+                </a>
+                <a href="{{ url_for('admin.appointments') }}" class="btn btn-outline-info w-100">
+                    <i class="fas fa-calendar-alt"></i> View Appointments
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load chart data
+fetch('{{ url_for("admin.api_stats") }}')
+    .then(res => res.json())
+    .then(data => {
+        const ctx = document.getElementById('statsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data.appointment_status),
+                datasets: [{
+                    label: 'Appointments by Status',
+                    data: Object.values(data.appointment_status),
+                    backgroundColor: [
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(153, 102, 255, 0.8)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    });
+</script>
+{% endblock %}

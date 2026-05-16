@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Dr. {{ doctor.user.name }} - Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <img src="{{ url_for('static', filename='images/doctor-avatar.png') }}" 
+                         class="rounded-circle mb-3" 
+                         alt="Doctor" 
+                         width="150">
+                    <h4>Dr. {{ doctor.user.name }}</h4>
+                    <p class="text-muted">{{ doctor.specialization }}</p>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{{ url_for('patient.book_appointment', doctor_id=doctor.id) }}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-calendar-plus"></i> Book Appointment
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5><i class="fas fa-user-md"></i> Doctor Information</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-primary">Professional Details</h6>
+                    <hr>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Specialization:</strong> {{ doctor.specialization }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Qualification:</strong> {{ doctor.qualification }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Experience:</strong> {{ doctor.experience }} years</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>License Number:</strong> {{ doctor.license_number if doctor.license_number else 'N/A' }}</p>
+                        </div>
+                    </div>
+                    
+                    <h6 class="text-primary mt-4">Contact Information</h6>
+                    <hr>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong>Email:</strong> {{ doctor.email if doctor.email else doctor.user.email }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Phone:</strong> {{ doctor.phone if doctor.phone else 'N/A' }}</p>
+                        </div>
+                    </div>
+                    
+                    {% if doctor.about %}
+                    <h6 class="text-primary mt-4">About</h6>
+                    <hr>
+                    <p>{{ doctor.about }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <a href="{{ url_for('patient.doctors') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Doctors List
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

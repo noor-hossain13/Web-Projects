@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Appointment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-calendar-plus"></i> Book Appointment</h4>
+            </div>
+            <div class="card-body">
+                <!-- Doctor Info -->
+                <div class="alert alert-info">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5><i class="fas fa-user-md"></i> Dr. {{ doctor.user.name }}</h5>
+                            <p class="mb-0">
+                                <strong>Specialization:</strong> {{ doctor.specialization }}<br>
+                                <strong>Experience:</strong> {{ doctor.experience }} years<br>
+                                <strong>Available Time:</strong> {{ doctor.available_time or 'Not specified' }}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-success" onclick="getAISuggestion()">
+                                <i class="fas fa-robot"></i> AI Suggest Time
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Suggestion Display -->
+                <div id="aiSuggestion" class="alert alert-success" style="display: none;">
+                    <h6><i class="fas fa-lightbulb"></i> AI Recommended Times:</h6>
+                    <div id="suggestionContent"></div>
+                </div>
+                
+                <!-- Booking Form -->
+                <form method="POST" action="{{ url_for('patient.book_appointment', doctor_id=doctor.id) }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Appointment Date *</label>
+                            <input type="date" name="date" class="form-control" 
+                                   min="{{ today }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Preferred Time *</label>
+                            <input type="time" name="time" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Reason for Visit *</label>
+                        <textarea name="reason" class="form-control" rows="4" 
+                                  placeholder="Describe your symptoms or reason for consultation" 
+                                  required></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('patient.doctors') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Book Appointment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const today = new Date().toISOString().split('T')[0];
+document.querySelector('input[name="date"]').min = today;
+
+async function getAISuggestion() {
+    const suggestionDiv = document.getElementById('aiSuggestion');
+    const contentDiv = document.getElementById('suggestionContent');
+    
+    contentDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting AI suggestions...';
+    suggestionDiv.style.display = 'block';
+    
+    try {
+        const response = await fetch('{{ url_for("ai.suggest_time", doctor_id=doctor.id) }}');
+        const data = await response.json();
+        contentDiv.innerHTML = `<p>${data.suggestion}</p>`;
+    } catch (error) {
+        contentDiv.innerHTML = '<p class="text-danger">Unable to get suggestions at this time.</p>';
+    }
+}
+</script>
+{% endblock %}

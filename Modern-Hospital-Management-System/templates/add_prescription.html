@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Prescription{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-prescription"></i> Add Prescription</h4>
+            </div>
+            <div class="card-body">
+                <!-- Patient Info -->
+                <div class="alert alert-info mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Patient Information</h6>
+                            <p class="mb-0">
+                                <strong>Name:</strong> {{ appointment.patient.user.name }}<br>
+                                <strong>Age:</strong> {{ appointment.patient.age }} years<br>
+                                <strong>Gender:</strong> {{ appointment.patient.gender }}<br>
+                                <strong>Blood Group:</strong> {{ appointment.patient.blood_group or 'N/A' }}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Appointment Details</h6>
+                            <p class="mb-0">
+                                <strong>Date:</strong> {{ appointment.date }}<br>
+                                <strong>Time:</strong> {{ appointment.time }}<br>
+                                <strong>Reason:</strong> {{ appointment.reason }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Prescription Form -->
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">Diagnosis *</label>
+                        <textarea name="diagnosis" class="form-control" rows="3" 
+                                  placeholder="Enter the diagnosis" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Medicines & Dosage *</label>
+                        <textarea name="medicines" class="form-control" rows="5" 
+                                  placeholder="Enter medicines with dosage instructions&#10;Example:&#10;1. Paracetamol 500mg - 1 tablet twice daily after meals&#10;2. Amoxicillin 250mg - 1 capsule three times daily" 
+                                  required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Recommended Tests</label>
+                        <textarea name="tests" class="form-control" rows="3" 
+                                  placeholder="Enter recommended lab tests or investigations"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Additional Notes</label>
+                        <textarea name="notes" class="form-control" rows="3" 
+                                  placeholder="Any additional instructions or precautions"></textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('doctor.appointments') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Prescription
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Health Assistant{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-gradient-success text-white py-3">
+                <h4 class="mb-0">
+                    <i class="fas fa-robot"></i> AI Health Assistant
+                </h4>
+                <small>Get instant health tips, smart scheduling, and medical advice</small>
+            </div>
+            
+            <div class="card-body" style="height: 500px; overflow-y: auto;" id="chatContainer">
+                <div id="messages">
+                    <div class="message ai-message">
+                        <div class="message-bubble">
+                            <strong>AI Assistant</strong>
+                            <p>Hello! I'm your AI health assistant. I can help you with:</p>
+                            <ul>
+                                <li>Finding the best appointment times</li>
+                                <li>General health advice based on symptoms</li>
+                                <li>Answering medical questions</li>
+                                <li>Health tips and wellness advice</li>
+                            </ul>
+                            <p>How can I help you today?</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer bg-light">
+                <form id="chatForm" class="d-flex gap-2">
+                    <input type="text" id="messageInput" class="form-control" 
+                           placeholder="Type your message..." required>
+                    <button type="submit" class="btn btn-success" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="row mt-4 g-3">
+            <div class="col-md-4">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-alt fa-3x text-primary mb-3"></i>
+                        <h6>Smart Scheduling</h6>
+                        <button class="btn btn-sm btn-outline-primary" onclick="askScheduling()">
+                            Get Best Times
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-heartbeat fa-3x text-danger mb-3"></i>
+                        <h6>Health Advice</h6>
+                        <button class="btn btn-sm btn-outline-danger" onclick="askHealthAdvice()">
+                            Get Advice
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center shadow-sm">
+                    <div class="card-body">
+                        <i class="fas fa-lightbulb fa-3x text-warning mb-3"></i>
+                        <h6>Daily Tips</h6>
+                        <button class="btn btn-sm btn-outline-warning" onclick="askTips()">
+                            Get Tips
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+#chatContainer {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.message {
+    margin-bottom: 15px;
+    display: flex;
+}
+
+.ai-message {
+    justify-content: flex-start;
+}
+
+.user-message {
+    justify-content: flex-end;
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    animation: fadeIn 0.3s;
+}
+
+.ai-message .message-bubble {
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.user-message .message-bubble {
+    background: #007bff;
+    color: white;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #999;
+    animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-10px); }
+}
+</style>
+
+<script>
+const chatForm = document.getElementById('chatForm');
+const messageInput = document.getElementById('messageInput');
+const messagesDiv = document.getElementById('messages');
+const chatContainer = document.getElementById('chatContainer');
+
+function addMessage(content, isUser = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+    messageDiv.innerHTML = `
+        <div class="message-bubble">
+            ${isUser ? '<strong>You</strong>' : '<strong>AI Assistant</strong>'}
+            <p>${content}</p>
+        </div>
+    `;
+    messagesDiv.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function showTyping() {
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'message ai-message';
+    typingDiv.id = 'typing';
+    typingDiv.innerHTML = `
+        <div class="message-bubble">
+            <div class="typing-indicator">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    `;
+    messagesDiv.appendChild(typingDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function hideTyping() {
+    const typing = document.getElementById('typing');
+    if (typing) typing.remove();
+}
+
+chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+    if (!message) return;
+    
+    addMessage(message, true);
+    messageInput.value = '';
+    showTyping();
+    
+    try {
+        const response = await fetch('{{ url_for("ai.chat") }}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message })
+        });
+        
+        const data = await response.json();
+        hideTyping();
+        addMessage(data.response);
+    } catch (error) {
+        hideTyping();
+        addMessage('Sorry, I encountered an error. Please try again.', false);
+    }
+});
+
+function askScheduling() {
+    messageInput.value = 'What are the best times to schedule an appointment?';
+    chatForm.dispatchEvent(new Event('submit'));
+}
+
+function askHealthAdvice() {
+    const symptoms = prompt('Describe your symptoms:');
+    if (symptoms) {
+        messageInput.value = `I have these symptoms: ${symptoms}. What should I do?`;
+        chatForm.dispatchEvent(new Event('submit'));
+    }
+}
+
+function askTips() {
+    messageInput.value = 'Give me a health tip for today';
+    chatForm.dispatchEvent(new Event('submit'));
+}
+</script>
+{% endblock %}

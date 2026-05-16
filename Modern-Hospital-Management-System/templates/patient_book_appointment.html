@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Appointment - {{ doctor.user.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-plus"></i> Book Appointment
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Doctor Information -->
+                    <div class="alert alert-info">
+                        <div class="row">
+                            <div class="col-md-2 text-center">
+                                <i class="fas fa-user-md fa-3x"></i>
+                            </div>
+                            <div class="col-md-10">
+                                <h5 class="mb-1">Dr. {{ doctor.user.name }}</h5>
+                                <p class="mb-1"><strong>Specialization:</strong> {{ doctor.specialization }}</p>
+                                <p class="mb-0"><strong>Experience:</strong> {{ doctor.experience }} years</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Appointment Form -->
+                    <form method="POST" action="{{ url_for('patient.book_appointment', doctor_id=doctor.id) }}">
+                        <div class="mb-3">
+                            <label for="appointment_date" class="form-label">
+                                <i class="fas fa-calendar"></i> Appointment Date *
+                            </label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   id="appointment_date" 
+                                   name="appointment_date" 
+                                   min="{{ today }}"
+                                   required>
+                            <small class="form-text text-muted">
+                                Select a date for your appointment
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="appointment_time" class="form-label">
+                                <i class="fas fa-clock"></i> Appointment Time *
+                            </label>
+                            <input type="time" 
+                                   class="form-control" 
+                                   id="appointment_time" 
+                                   name="appointment_time" 
+                                   min="09:00" 
+                                   max="17:00"
+                                   required>
+                            <small class="form-text text-muted">
+                                Available time: 9:00 AM - 5:00 PM
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">
+                                <i class="fas fa-notes-medical"></i> Reason for Visit *
+                            </label>
+                            <textarea class="form-control" 
+                                      id="reason" 
+                                      name="reason" 
+                                      rows="4" 
+                                      placeholder="Please describe your symptoms or reason for consultation..."
+                                      required></textarea>
+                            <small class="form-text text-muted">
+                                Provide details about your health concern
+                            </small>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Note:</strong> Your appointment request will be sent to the doctor for approval. 
+                            You will be notified once the doctor confirms your appointment.
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('patient.doctors') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Book Appointment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Additional Information -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle"></i> Appointment Guidelines
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Please arrive 10 minutes before your scheduled time</li>
+                        <li>Bring any previous medical records or test results</li>
+                        <li>You can cancel or reschedule up to 24 hours before the appointment</li>
+                        <li>A confirmation will be sent to your email once approved</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set minimum date to today
+    document.addEventListener('DOMContentLoaded', function() {
+        var today = new Date().toISOString().split('T')[0];
+        document.getElementById('appointment_date').setAttribute('min', today);
+        
+        // Set default date to tomorrow
+        var tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('appointment_date').value = tomorrow.toISOString().split('T')[0];
+    });
+
+    // Validate time selection
+    document.getElementById('appointment_time').addEventListener('change', function() {
+        var time = this.value;
+        var hour = parseInt(time.split(':')[0]);
+        
+        if (hour < 9 || hour >= 17) {
+            alert('Please select a time between 9:00 AM and 5:00 PM');
+            this.value = '09:00';
+        }
+    });
+</script>
+
+<style>
+    .card {
+        border-radius: 10px;
+    }
+    
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+    }
+</style>
+{% endblock %}

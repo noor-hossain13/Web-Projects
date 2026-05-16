@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}My Prescription{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-prescription"></i> Prescription #{{ prescription.id }}
+                    </h4>
+                </div>
+
+                <div class="card-body">
+                    <!-- Doctor & Date Info -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-user-md text-primary"></i> Prescribed By</h6>
+                            <p class="mb-0">Dr. {{ prescription.doctor.user.name }}</p>
+                            <small class="text-muted">{{ prescription.doctor.specialization }}</small>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <h6><i class="fas fa-calendar text-success"></i> Date</h6>
+                            <p class="mb-0">{{ prescription.created_at.strftime('%B %d, %Y') }}</p>
+                            <small class="text-muted">{{ prescription.created_at.strftime('%I:%M %p') }}</small>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Diagnosis -->
+                    <div class="mb-3">
+                        <h5 class="text-danger"><i class="fas fa-diagnoses"></i> Diagnosis</h5>
+                        <div class="alert alert-light">
+                            {{ prescription.diagnosis }}
+                        </div>
+                    </div>
+
+                    <!-- Medicines -->
+                    <div class="mb-3">
+                        <h5 class="text-primary"><i class="fas fa-pills"></i> Medicines</h5>
+                        <div class="alert alert-light">
+                            {{ prescription.medicines|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+
+                    <!-- Tests -->
+                    {% if prescription.tests %}
+                    <div class="mb-3">
+                        <h5 class="text-warning"><i class="fas fa-vial"></i> Tests</h5>
+                        <div class="alert alert-light">
+                            {{ prescription.tests|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Notes -->
+                    {% if prescription.notes %}
+                    <div class="mb-3">
+                        <h5 class="text-info"><i class="fas fa-sticky-note"></i> Notes</h5>
+                        <div class="alert alert-light">
+                            {{ prescription.notes|replace('\n', '<br>')|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="card-footer">
+                    <a href="{{ url_for('patient.prescriptions') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                    <button onclick="window.print()" class="btn btn-primary float-end">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

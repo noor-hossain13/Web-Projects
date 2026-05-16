@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Medical Reports - Patient Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2><i class="fas fa-file-medical"></i> My Medical Reports</h2>
+            <p class="text-muted">View your medical history, reports, and prescriptions</p>
+            <hr>
+        </div>
+    </div>
+
+    <!-- Tabs for different report types -->
+    <ul class="nav nav-tabs mb-4" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="prescriptions-tab" data-bs-toggle="tab" 
+                    data-bs-target="#prescriptions" type="button" role="tab">
+                <i class="fas fa-prescription"></i> Prescriptions ({{ prescriptions|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="appointments-tab" data-bs-toggle="tab" 
+                    data-bs-target="#appointments" type="button" role="tab">
+                <i class="fas fa-calendar-check"></i> Completed Visits ({{ appointments|length }})
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="reportTabContent">
+        <!-- Prescriptions Tab -->
+        <div class="tab-pane fade show active" id="prescriptions" role="tabpanel">
+            {% if prescriptions %}
+                <div class="row">
+                    {% for prescription in prescriptions %}
+                    <div class="col-md-6 mb-3">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-prescription-bottle"></i>
+                                    Prescription #{{ prescription.id }}
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="mb-2">
+                                    <strong>Doctor:</strong> Dr. {{ prescription.doctor.user.name }}
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Date:</strong> {{ prescription.created_at.strftime('%B %d, %Y') }}
+                                </p>
+                                <p class="mb-2">
+                                    <strong>Diagnosis:</strong> {{ prescription.diagnosis }}
+                                </p>
+                                {% if prescription.medicines %}
+                                <p class="mb-2">
+                                    <strong>Medicines:</strong> {{ prescription.medicines[:50] }}...
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer">
+                                <a href="{{ url_for('patient.prescription_detail', prescription_id=prescription.id) }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                <a href="#" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    No prescriptions found. Complete an appointment to receive prescriptions from your doctor.
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Completed Appointments Tab -->
+        <div class="tab-pane fade" id="appointments" role="tabpanel">
+            {% if appointments %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Doctor</th>
+                                <th>Reason</th>
+                                <th>Prescription</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in appointments %}
+                            <tr>
+                                <td>{{ appointment.date.strftime('%b %d, %Y') }}</td>
+                                <td>Dr. {{ appointment.doctor.user.name }}</td>
+                                <td>{{ appointment.reason }}</td>
+                                <td>
+                                    {% if appointment.prescription %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Available
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-times"></i> N/A
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('patient.appointment_detail', appointment_id=appointment.id) }}" 
+                                       class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    {% if appointment.prescription %}
+                                    <a href="{{ url_for('patient.prescription_detail', prescription_id=appointment.prescription.id) }}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-prescription"></i> Prescription
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    No completed appointments found. Your medical history will appear here after completing appointments.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Back to Dashboard -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <a href="{{ url_for('patient.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS for tabs -->
+<script>
+    // Initialize Bootstrap tabs
+    var triggerTabList = [].slice.call(document.querySelectorAll('#reportTabs button'))
+    triggerTabList.forEach(function (triggerEl) {
+        var tabTrigger = new bootstrap.Tab(triggerEl)
+        triggerEl.addEventListener('click', function (event) {
+            event.preventDefault()
+            tabTrigger.show()
+        })
+    })
+</script>
+{% endblock %}

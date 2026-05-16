@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}My Prescriptions{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4"><i class="fas fa-prescription"></i> My Prescriptions</h2>
+        
+        {% for prescription in prescriptions %}
+        <div class="prescription-card mb-3">
+            <div class="row">
+                <div class="col-md-8">
+                    <h5><i class="fas fa-user-md"></i> Dr. {{ prescription.doctor.user.name }}</h5>
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-calendar"></i> {{ prescription.created_at.strftime('%B %d, %Y') }}
+                    </p>
+                    
+                    <h6 class="mt-3">Diagnosis:</h6>
+                    <p>{{ prescription.diagnosis }}</p>
+                    
+                    <h6>Medicines:</h6>
+                    <p class="text-primary">{{ prescription.medicines }}</p>
+                    
+                    {% if prescription.tests %}
+                    <h6>Recommended Tests:</h6>
+                    <p>{{ prescription.tests }}</p>
+                    {% endif %}
+                    
+                    {% if prescription.notes %}
+                    <h6>Additional Notes:</h6>
+                    <p>{{ prescription.notes }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{{ url_for('patient.prescription_detail', prescription_id=prescription.id) }}" 
+                       class="btn btn-outline-info mb-2 w-100">
+                        <i class="fas fa-eye"></i> View Details
+                    </a>
+                    <button class="btn btn-outline-primary mb-2 w-100" onclick="window.print()">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    <button class="btn btn-outline-success w-100">
+                        <i class="fas fa-download"></i> Download PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle fa-3x mb-3"></i>
+            <p class="mb-0">No prescriptions yet. Complete an appointment to get prescriptions.</p>
+        </div>
+        {% endfor %}
+        
+        <!-- Back Button -->
+        <div class="mt-4">
+            <a href="{{ url_for('patient.dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .prescription-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid #007bff;
+    }
+    
+    .prescription-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    
+    @media print {
+        .btn {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}

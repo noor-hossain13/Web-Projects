@@ -1,0 +1,13 @@
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-Bcrypt==1.0.1
+Flask-SocketIO==5.3.5
+python-dotenv==1.0.0
+google-generativeai==0.3.1
+PyMySQL==1.1.0
+cryptography==41.0.7
+python-engineio==4.8.0
+python-socketio==5.10.0
+Werkzeug==3.0.1
+email-validator==2.1.0

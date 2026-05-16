@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block title %}Prescription Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <!-- Prescription Card -->
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4 class="mb-0">
+                                <i class="fas fa-prescription"></i> Prescription Details
+                            </h4>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <span class="badge bg-light text-dark">
+                                ID: #{{ prescription.id }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <!-- Header Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="text-primary">
+                                <i class="fas fa-user-md"></i> Doctor Information
+                            </h5>
+                            <p class="mb-1"><strong>Name:</strong> Dr. {{ prescription.doctor.user.name }}</p>
+                            <p class="mb-1"><strong>Specialization:</strong> {{ prescription.doctor.specialization }}</p>
+                            {% if prescription.doctor.phone %}
+                            <p class="mb-0"><strong>Contact:</strong> {{ prescription.doctor.phone }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="text-success">
+                                <i class="fas fa-user"></i> Patient Information
+                            </h5>
+                            <p class="mb-1"><strong>Name:</strong> {{ prescription.patient.user.name }}</p>
+                            {% if prescription.patient.dob %}
+                            <p class="mb-1"><strong>Date of Birth:</strong> {{ prescription.patient.dob }}</p>
+                            {% endif %}
+                            {% if prescription.patient.blood_group %}
+                            <p class="mb-0"><strong>Blood Group:</strong> {{ prescription.patient.blood_group }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Prescription Date -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-calendar-alt"></i>
+                                <strong>Prescription Date:</strong> 
+                                {% if prescription.date %}
+                                    {{ prescription.date.strftime('%B %d, %Y') }}
+                                {% elif prescription.created_at %}
+                                    {{ prescription.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                {% else %}
+                                    {{ prescription.appointment.date.strftime('%B %d, %Y') }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Diagnosis -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title text-danger">
+                                        <i class="fas fa-diagnoses"></i> Diagnosis
+                                    </h5>
+                                    <p class="card-text mb-0">
+                                        {{ prescription.diagnosis if prescription.diagnosis else 'Not specified' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Medicines -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title text-primary">
+                                        <i class="fas fa-pills"></i> Prescribed Medicines
+                                    </h5>
+                                    {% if prescription.medicines %}
+                                    <div class="prescription-content">
+                                        {{ prescription.medicines|replace('\n', '<br>')|safe }}
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted mb-0">No medicines prescribed</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tests -->
+                    {% if prescription.tests %}
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title text-warning">
+                                        <i class="fas fa-vial"></i> Recommended Tests
+                                    </h5>
+                                    <div class="prescription-content">
+                                        {{ prescription.tests|replace('\n', '<br>')|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Additional Notes -->
+                    {% if prescription.notes %}
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h5 class="card-title text-info">
+                                        <i class="fas fa-sticky-note"></i> Additional Notes
+                                    </h5>
+                                    <div class="prescription-content">
+                                        {{ prescription.notes|replace('\n', '<br>')|safe }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Related Appointment -->
+                    {% if prescription.appointment %}
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="alert alert-secondary">
+                                <strong><i class="fas fa-calendar-check"></i> Related Appointment:</strong>
+                                {{ prescription.appointment.date.strftime('%B %d, %Y') }} at 
+                                {{ prescription.appointment.time.strftime('%I:%M %p') }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Important Notice -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="alert alert-warning">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-exclamation-triangle"></i> Important Instructions
+                                </h6>
+                                <ul class="mb-0">
+                                    <li>Take medicines as prescribed by the doctor</li>
+                                    <li>Complete the full course of medication</li>
+                                    <li>Do not share medicines with others</li>
+                                    <li>Contact your doctor if you experience any side effects</li>
+                                    <li>Keep this prescription for your records</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer with Actions -->
+                <div class="card-footer bg-light">
+                    <div class="row">
+                        <div class="col-md-6">
+                            {% if current_user.role == 'patient' %}
+                            <a href="{{ url_for('patient.prescriptions') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Prescriptions
+                            </a>
+                            {% elif current_user.role == 'doctor' %}
+                            <a href="{{ url_for('doctor.prescriptions') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Prescriptions
+                            </a>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button class="btn btn-primary" onclick="window.print()">
+                                <i class="fas fa-print"></i> Print Prescription
+                            </button>
+                            <button class="btn btn-success" onclick="downloadPDF()">
+                                <i class="fas fa-download"></i> Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Digital Signature -->
+            <div class="text-center mt-3 text-muted">
+                <small>
+                    <i class="fas fa-shield-alt"></i> 
+                    This is a digitally generated prescription from Hospital Management System
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Styles -->
+<style>
+    .prescription-content {
+        white-space: pre-wrap;
+        font-family: 'Courier New', monospace;
+        background: white;
+        padding: 15px;
+        border-left: 3px solid #007bff;
+    }
+
+    @media print {
+        .btn, .alert-warning, footer, nav, .card-footer {
+            display: none !important;
+        }
+        
+        .card {
+            box-shadow: none !important;
+            border: 2px solid #000;
+        }
+        
+        .card-header {
+            background-color: #000 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        body {
+            background: white !important;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 100%;
+        }
+    }
+
+    .card {
+        border-radius: 15px;
+    }
+
+    .card-header {
+        border-radius: 15px 15px 0 0;
+    }
+</style>
+
+<!-- JavaScript for PDF Download -->
+<script>
+    function downloadPDF() {
+        alert('PDF download functionality requires a PDF library like jsPDF or server-side generation. For now, please use the Print option and save as PDF.');
+        window.print();
+    }
+</script>
+{% endblock %}

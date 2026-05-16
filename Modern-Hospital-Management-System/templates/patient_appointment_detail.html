@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Appointment Details - Patient Portal{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Appointment Details
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Status Badge -->
+                    <div class="text-center mb-4">
+                        {% if appointment.status == 'pending' %}
+                            <span class="badge bg-warning text-dark fs-5">
+                                <i class="fas fa-clock"></i> Pending Approval
+                            </span>
+                        {% elif appointment.status == 'approved' %}
+                            <span class="badge bg-success fs-5">
+                                <i class="fas fa-check"></i> Approved
+                            </span>
+                        {% elif appointment.status == 'completed' %}
+                            <span class="badge bg-info fs-5">
+                                <i class="fas fa-check-circle"></i> Completed
+                            </span>
+                        {% elif appointment.status == 'rejected' %}
+                            <span class="badge bg-danger fs-5">
+                                <i class="fas fa-times"></i> Rejected
+                            </span>
+                        {% elif appointment.status == 'cancelled' %}
+                            <span class="badge bg-secondary fs-5">
+                                <i class="fas fa-ban"></i> Cancelled
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Doctor Information -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-user-md text-primary"></i> Doctor Information
+                            </h5>
+                            <hr>
+                            <p><strong>Name:</strong> Dr. {{ appointment.doctor.user.name }}</p>
+                            <p><strong>Specialization:</strong> {{ appointment.doctor.specialization }}</p>
+                            <p><strong>Experience:</strong> {{ appointment.doctor.experience }} years</p>
+                            {% if appointment.doctor.phone %}
+                            <p><strong>Contact:</strong> {{ appointment.doctor.phone }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Appointment Details -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-calendar-alt text-success"></i> Appointment Details
+                            </h5>
+                            <hr>
+                            <p><strong>Date:</strong> {{ appointment.date.strftime('%A, %B %d, %Y') }}</p>
+                            <p><strong>Time:</strong> {{ appointment.time.strftime('%I:%M %p') }}</p>
+                            <p><strong>Reason for Visit:</strong></p>
+                            <p class="border p-2 bg-white">{{ appointment.reason }}</p>
+                            
+                            {% if appointment.notes %}
+                            <p><strong>Doctor's Notes:</strong></p>
+                            <div class="alert alert-info">
+                                {{ appointment.notes }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Prescription (if available) -->
+                    {% if appointment.prescription %}
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-prescription text-info"></i> Prescription Available
+                            </h5>
+                            <hr>
+                            <p>A prescription has been issued for this appointment.</p>
+                            <a href="{{ url_for('patient.prescription_detail', prescription_id=appointment.prescription.id) }}" 
+                               class="btn btn-info">
+                                <i class="fas fa-eye"></i> View Prescription
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Booking Information -->
+                    <div class="text-muted small">
+                        <p class="mb-1">
+                            <i class="fas fa-clock"></i> 
+                            Booked on: {{ appointment.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                        </p>
+                        {% if appointment.updated_at != appointment.created_at %}
+                        <p class="mb-0">
+                            <i class="fas fa-edit"></i> 
+                            Last updated: {{ appointment.updated_at.strftime('%B %d, %Y at %I:%M %p') }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('patient.appointments') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Appointments
+                        </a>
+                        
+                        {% if appointment.status in ['pending', 'approved'] %}
+                        <form method="POST" 
+                              action="{{ url_for('patient.cancel_appointment', appointment_id=appointment.id) }}"
+                              onsubmit="return confirm('Are you sure you want to cancel this appointment?');">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-ban"></i> Cancel Appointment
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}Patient Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4"><i class="fas fa-user"></i> Patient Dashboard</h2>
+        <p class="text-muted">Welcome, {{ current_user.name }}!</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-primary shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-calendar-check fa-3x text-primary mb-3"></i>
+                <h3 class="mb-0">{{ stats.upcoming }}</h3>
+                <p class="text-muted mb-0">Upcoming Appointments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-success shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h3 class="mb-0">{{ stats.completed }}</h3>
+                <p class="text-muted mb-0">Completed</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-prescription fa-3x text-info mb-3"></i>
+                <h3 class="mb-0">{{ stats.prescriptions }}</h3>
+                <p class="text-muted mb-0">Prescriptions</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-warning shadow-sm">
+            <div class="card-body text-center">
+                <i class="fas fa-file-medical fa-3x text-warning mb-3"></i>
+                <h3 class="mb-0">{{ stats.reports }}</h3>
+                <p class="text-muted mb-0">Medical Reports</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-md-8">
+        <!-- Book Appointment CTA -->
+        <div class="card bg-primary text-white shadow mb-4">
+            <div class="card-body">
+                <h4><i class="fas fa-calendar-plus"></i> Need to See a Doctor?</h4>
+                <p class="mb-3">Book an appointment with our qualified specialists</p>
+                <a href="{{ url_for('patient.doctors') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-search"></i> Find Doctors
+                </a>
+            </div>
+        </div>
+        
+        <!-- Recent Appointments -->
+        <div class="card shadow">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Recent Appointments</h5>
+                <a href="{{ url_for('patient.appointments') }}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_appointments %}
+                <div class="list-group list-group-flush">
+                    {% for apt in recent_appointments %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">Dr. {{ apt.doctor.user.name }}</h6>
+                            <span class="badge bg-{{ 'warning' if apt.status == 'pending' else 'success' if apt.status == 'approved' else 'secondary' }}">
+                                {{ apt.status.title() }}
+                            </span>
+                        </div>
+                        <p class="mb-1">
+                            <i class="fas fa-stethoscope"></i> {{ apt.doctor.specialization }}<br>
+                            <i class="fas fa-calendar"></i> {{ apt.date }} at {{ apt.time }}
+                        </p>
+                        <small class="text-muted">{{ apt.reason }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center py-4 text-muted">No appointments yet. Book your first one!</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- AI Assistant -->
+        <div class="card shadow mb-3 border-success">
+            <div class="card-body text-center">
+                <i class="fas fa-robot fa-4x text-success mb-3"></i>
+                <h5>AI Health Assistant</h5>
+                <p class="text-muted">Get instant health tips and smart scheduling</p>
+                <a href="{{ url_for('ai.assistant') }}" class="btn btn-success w-100">
+                    <i class="fas fa-comment-medical"></i> Chat Now
+                </a>
+            </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="card shadow">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-link"></i> Quick Links</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{{ url_for('patient.prescriptions') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-prescription"></i> My Prescriptions
+                </a>
+                <a href="{{ url_for('patient.reports') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-file-medical"></i> Medical Reports
+                </a>
+                <a href="{{ url_for('chat.index') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-comments"></i> Messages
+                </a>
+                <a href="{{ url_for('patient.profile') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-user-cog"></i> Profile Settings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
