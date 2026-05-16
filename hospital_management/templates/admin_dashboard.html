@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-user-shield"></i> Admin Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Total Doctors</h5>
+                        <h2>{{ doctor_count }}</h2>
+                    </div>
+                    <i class="fas fa-user-md fa-3x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Total Patients</h5>
+                        <h2>{{ patient_count }}</h2>
+                    </div>
+                    <i class="fas fa-user-injured fa-3x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Total Appointments</h5>
+                        <h2>{{ appointment_count }}</h2>
+                    </div>
+                    <i class="fas fa-calendar-check fa-3x"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5><i class="fas fa-chart-line"></i> System Overview</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Hospital Management System</strong></p>
+                <p>Welcome to the admin panel. You can manage doctors, patients, and appointments from here.</p>
+                <p class="text-muted">Last updated: {{ now() }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}d">
+            <div class="card-header bg-primary text-white">
+                <h5><i class="fas fa-tasks"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('view_patients') }}" class="btn btn-outline-primary btn-block mb-2 w-100">
+                    <i class="fas fa-users"></i> View All Patients
+                </a>
+                <a href="{{ url_for('signup') }}" class="btn btn-outline-success btn-block w-100">
+                    <i class="fas fa-user-plus"></i> Add New User
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="car
